@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Utrudnienia w powiecie polickim</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+:root{
+  --ground:#EEF1EC; --panel:#FFFFFF; --ink:#18221E; --ink-2:#4A5751; --ink-3:#77837D;
+  --line:#D6DDD7; --land:#F7F8F4; --land-out:#E4E8E1; --water:#C3D7DD; --water-ink:#6E929C;
+  --county:#2F5D50; --road:#A9B2AC; --road-major:#8C9690; --focus:#1F6FEB;
+  --st-closed:#C62F1F; --st-limit:#D48300; --st-plan:#4659A6; --st-done:#8A948F;
+  --chip:#F2F4F1; --shadow:0 1px 2px rgba(20,30,25,.08),0 4px 16px rgba(20,30,25,.06);
+  --plate-k:#C8201E; --plate-w:#F2C200;
+  --forest:#D9E6D2; --built:#E9E5DF; --ind:#E4DFE4; --rail:#7D8782;
+  --r-case:#B9C0BB; --r-fill:#FFFFFF; --r-sec:#F8E6A6; --r-pri:#F3C57C; --r-mot:#E58C68; --r-mot-case:#B5573A;
+  font-family:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --ground:#121816; --panel:#1A221F; --ink:#E6ECE8; --ink-2:#B3BFB8; --ink-3:#8A968F;
+    --line:#2C3833; --land:#1E2724; --land-out:#171E1B; --water:#1D3339; --water-ink:#5E8791;
+    --county:#7FC1AC; --road:#44514B; --road-major:#5A6861;
+    --st-closed:#F0604E; --st-limit:#F2A93B; --st-plan:#8A9BEA; --st-done:#6F7A75;
+    --chip:#222C28; --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25);
+    --forest:#1C2A22; --built:#262D2A; --ind:#2A2830; --rail:#6F7A75;
+    --r-case:#141A18; --r-fill:#46524C; --r-sec:#6B6547; --r-pri:#8A6A3E; --r-mot:#A2563C; --r-mot-case:#0E1311;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#121816; --panel:#1A221F; --ink:#E6ECE8; --ink-2:#B3BFB8; --ink-3:#8A968F;
+  --line:#2C3833; --land:#1E2724; --land-out:#171E1B; --water:#1D3339; --water-ink:#5E8791;
+  --county:#7FC1AC; --road:#44514B; --road-major:#5A6861;
+  --st-closed:#F0604E; --st-limit:#F2A93B; --st-plan:#8A9BEA; --st-done:#6F7A75;
+  --chip:#222C28; --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25);
+  --forest:#1C2A22; --built:#262D2A; --ind:#2A2830; --rail:#6F7A75;
+    --r-case:#141A18; --r-fill:#46524C; --r-sec:#6B6547; --r-pri:#8A6A3E; --r-mot:#A2563C; --r-mot-case:#0E1311;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--ground);color:var(--ink);font-size:15px;line-height:1.45;padding-inline:16px;padding-block:14px}
+.wrap{max-width:1320px;margin:0 auto;display:flex;flex-direction:column;gap:12px;height:100%}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 20px}
+h1{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:700;font-size:30px;line-height:1;margin:0;letter-spacing:.01em;text-wrap:balance}
+h1 small{display:block;font-family:"Source Sans 3",system-ui,sans-serif;font-weight:400;font-size:14px;color:var(--ink-2);letter-spacing:0;margin-top:5px}
+.stamp{font-size:13px;color:var(--ink-2);text-align:right;font-variant-numeric:tabular-nums}
+.stamp b{color:var(--ink);font-weight:600}
+.main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.55fr) minmax(320px,1fr);gap:12px}
+.mapbox{position:relative;background:var(--land-out);border:1px solid var(--line);border-radius:10px;overflow:hidden;min-height:420px;box-shadow:var(--shadow)}
+#map{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#map.drag{cursor:grabbing}
+.ctrl{position:absolute;top:10px;right:10px;display:flex;flex-direction:column;gap:6px}
+.ctrl button{width:36px;height:36px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:18px;font-weight:600;cursor:pointer;box-shadow:var(--shadow)}
+.ctrl button:hover{border-color:var(--ink-3)}
+button:focus-visible,a:focus-visible,.item:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.legend{position:absolute;left:10px;bottom:10px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12.5px;display:flex;flex-direction:column;gap:4px;box-shadow:var(--shadow);max-width:calc(100% - 20px)}
+.legend .row{display:flex;align-items:center;gap:8px}
+.legend .sw{width:22px;height:5px;border-radius:3px}
+.legend .note{color:var(--ink-3);font-size:11.5px;margin-top:2px}
+.side{display:flex;flex-direction:column;gap:10px;min-height:0}
+.filters{display:flex;flex-wrap:wrap;gap:6px}
+.filters button{border:1px solid var(--line);background:var(--panel);color:var(--ink-2);border-radius:999px;padding:5px 12px;font:600 13px/1.2 "Source Sans 3",system-ui,sans-serif;cursor:pointer}
+.filters button[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.filters .n{font-variant-numeric:tabular-nums;opacity:.7;margin-left:4px}
+.list{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:8px;padding-right:2px}
+.item{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:11px 12px 11px 14px;cursor:pointer;display:grid;grid-template-columns:5px 1fr;gap:0 12px;box-shadow:var(--shadow)}
+.item .bar{border-radius:3px;grid-row:1 / span 5}
+.item.sel{border-color:var(--ink-2)}
+.item.sel .more{display:block}
+.top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.plate{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:700;font-size:14px;line-height:1;padding:3px 6px 2px;border-radius:3px;letter-spacing:.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.plate.K,.plate.A{background:var(--plate-k);color:#fff}
+.plate.W{background:var(--plate-w);color:#111}
+.plate.P{border:1.5px solid var(--ink-2);color:var(--ink);padding:2px 5px 1px}
+.plate.G{border:1.5px dashed var(--ink-3);color:var(--ink-2);padding:2px 5px 1px}
+.pill{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:2px 7px;border-radius:999px;color:#fff}
+.gm{font-size:12.5px;color:var(--ink-3);margin-left:auto}
+.item h3{font-size:16px;margin:5px 0 2px;line-height:1.25;font-weight:700;text-wrap:balance}
+.when{font-size:13px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.more{display:none;font-size:13.5px;color:var(--ink-2);margin-top:6px}
+.more p{margin:0 0 6px}
+.more .lbl{font-weight:700;color:var(--ink);font-size:12px;text-transform:uppercase;letter-spacing:.05em;margin-right:4px}
+.more .links{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:4px}
+.more a{color:var(--focus);text-decoration:none}
+.more a:hover{text-decoration:underline}
+.approx{font-size:12px;color:var(--ink-3);font-style:italic}
+.empty{color:var(--ink-3);padding:20px;text-align:center;background:var(--panel);border:1px dashed var(--line);border-radius:10px}
+.foot{font-size:12px;color:var(--ink-3)}
+#map path.base{vector-effect:non-scaling-stroke}
+#map .rl,#map .rlc,#map .slab{display:none}
+#map[data-z="1"] .rl,#map[data-z="2"] .rl,#map[data-z="3"] .rl,#map[data-z="1"] .rlc,#map[data-z="2"] .rlc,#map[data-z="3"] .rlc{display:inline}
+svg text{font-family:"Source Sans 3",system-ui,sans-serif;paint-order:stroke;stroke-linejoin:round}
+.inc{cursor:pointer;outline:none}
+#map:focus,#map *:focus{outline:none}
+@media (max-width:860px){
+  html,body{height:auto}
+  .main{grid-template-columns:1fr}
+  .mapbox{height:clamp(340px,58vh,520px);min-height:340px}
+  .list{overflow:visible}
+  .legend{font-size:11.5px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Utrudnienia drogowe · powiat policki<small>Remonty, zamknięcia i zapowiedziane prace w gminach Police, Dobra, Kołbaskowo i Nowe Warpno</small></h1>
+    <div class="stamp" id="stamp">Wczytywanie danych…</div>
+  </header>
+  <div class="main">
+    <div class="mapbox">
+      <svg id="map" role="img" aria-label="Mapa poglądowa powiatu polickiego z zaznaczonymi utrudnieniami"></svg>
+      <div class="ctrl">
+        <button id="zin" aria-label="Przybliż">+</button>
+        <button id="zout" aria-label="Oddal">−</button>
+        <button id="zreset" aria-label="Pokaż cały powiat" style="font-size:14px">⤢</button>
+      </div>
+      <div class="legend" aria-label="Legenda">
+        <div class="row"><span class="sw" style="background:var(--st-closed)"></span>Zamknięcie drogi</div>
+        <div class="row"><span class="sw" style="background:var(--st-limit)"></span>Utrudnienia, zwężenia, ruch wahadłowy</div>
+        <div class="row"><span class="sw" style="background:var(--st-plan)"></span>Prace zapowiedziane</div>
+        <div class="note">Podkład: © autorzy OpenStreetMap (ODbL).</div>
+      </div>
+    </div>
+    <div class="side">
+      <div class="filters" id="filters" role="group" aria-label="Filtr">
+        <button data-f="aktywne" aria-pressed="true">Trwające<span class="n"></span></button>
+        <button data-f="planowane" aria-pressed="false">Zapowiedziane<span class="n"></span></button>
+        <button data-f="wszystkie" aria-pressed="false">Wszystkie<span class="n"></span></button>
+      </div>
+      <div class="list" id="list"><div class="empty">Wczytywanie listy utrudnień…</div></div>
+      <div class="foot" id="foot">Dane zbierane codziennie rano z komunikatów GDDKiA, ZZDW, Starostwa Powiatowego w Policach, urzędów gmin i lokalnych mediów. W razie wątpliwości sprawdź źródło przy danym wpisie.</div>
+    </div>
+  </div>
+</div>
+
+<script src="podklad.js"></script>
+<script>
+const BASE = window.MAPA_PODKLAD;
+const NS="http://www.w3.org/2000/svg";
+const svg=document.getElementById('map');
+const K=Math.cos(53.5*Math.PI/180);
+const P=([lat,lon])=>[(lon-14.10)*K*1000,(53.80-lat)*1000];
+const FULL=BASE.full;
+const COUNTY=(()=>{const [a,b]=P([53.765,14.14]),[c,d]=P([53.312,14.64]);return [a,b,c-a,d-b]})();
+let vb=COUNTY.slice(),Z=0;
+const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);(p||svg).appendChild(e);return e};
+const path=(pts,close)=>pts.map((p,i)=>(i?'L':'M')+P(p).map(v=>v.toFixed(2)).join(',')).join('')+(close?'Z':'');
+const defsTop=el('defs'),defs=el('defs');
+const gBase=el('g'),gRoads=el('g'),gSL=el('g'),gInc=el('g'),gLab=el('g'),gPl=el('g');const placeBoxes=[];
+el('filter',{id:'plsh',x:'-20%',y:'-30%',width:'140%',height:'160%'},defsTop).innerHTML='<feDropShadow dx="0" dy="0.6" stdDeviation="0.9" flood-opacity="0.35"/>';
+const RW={ // class: [casing, fill, widths per zoom z0..z3 (fill)]
+  l:['var(--r-case)','var(--r-fill)',[0,1.4,2.6,5]], u:['var(--r-case)','var(--r-fill)',[0.9,1.8,3,5.5]],
+  r:['var(--r-case)','var(--r-fill)',[1.3,2.4,3.8,6.5]], s:['var(--r-case)','var(--r-sec)',[1.8,3,4.6,7.5]],
+  p:['var(--r-case)','var(--r-pri)',[2.2,3.6,5.2,8]], m:['var(--r-mot-case)','var(--r-mot)',[2.6,4,6,9]]};
+const roadEls=[];
+function drawBase(){
+  const L=BASE.L,b=(d,a,p)=>el('path',Object.assign({d,class:'base'},a),p||gBase);
+  el('rect',{x:-200,y:-200,width:FULL[2]+400,height:FULL[3]+400,fill:'var(--land-out)'},gBase);
+  b(L.county,{fill:'var(--land)'});
+  b(L.forest,{fill:'var(--forest)'});
+  b(L.built,{fill:'var(--built)'});b(L.ind,{fill:'var(--ind)'});
+  b(L.sea,{fill:'var(--water)'});b(L.islands,{fill:'var(--land-out)'});
+  b(L.water,{fill:'var(--water)'});
+  b(L.river,{fill:'none',stroke:'var(--water)','stroke-width':2.2});
+  b(L.canal,{fill:'none',stroke:'var(--water)','stroke-width':1});
+  b(L.gmina,{fill:'none',stroke:'var(--county)','stroke-width':1,'stroke-dasharray':'2 3',opacity:.55});
+  b(L.county,{fill:'none',stroke:'var(--county)','stroke-width':2,'stroke-dasharray':'7 3'});
+  b(L.rail,{fill:'none',stroke:'var(--rail)','stroke-width':1.6,'stroke-dasharray':'5 3'});
+  for(const pass of ['c','f'])for(const c of ['l','u','r','s','p','m']){
+    if(!L['road_'+c])continue;const [cc,fc]=RW[c];
+    const e=b(L['road_'+c],{fill:'none',stroke:pass==='c'?cc:fc,'stroke-linecap':'round','stroke-linejoin':'round'},gRoads);
+    if(c==='l')e.setAttribute('class','base '+(pass==='c'?'rlc':'rl'));
+    roadEls.push([e,c,pass]);
+  }
+}
+function zoomLevel(){const w=vb[2];return w>70?0:w>30?1:w>16?2:3}
+function styleRoads(){for(const [e,c,p] of roadEls){const w=RW[c][2][Z];e.setAttribute('stroke-width',p==='c'?w+1.6:w)}}
+let slabId=0;
+function streetLabels(s){
+  gSL.innerHTML='';defs.innerHTML='';if(Z<3)return;
+  const [x0,y0,w,h]=vb;let n=0;
+  const L=BASE.labels.filter(l=>l[2]>w*0.08).sort((a,b)=>b[2]-a[2]);const seen=new Set();
+  for(const [nm,c,len,pts] of L){
+    const p=pts.split(' ').map(q=>q.split(',').map(Number));
+    const mid=p[Math.floor(p.length/2)];
+    if(mid[0]<x0||mid[0]>x0+w||mid[1]<y0||mid[1]>y0+h)continue;
+    const k=nm+'|'+Math.round(mid[0]/(w*.25))+'|'+Math.round(mid[1]/(h*.25));if(seen.has(k))continue;seen.add(k);
+    let q=p;if(p[0][0]>p[p.length-1][0])q=p.slice().reverse();
+    const id='sl'+(slabId++);el('path',{id,d:'M'+q.map(v=>v.join(',')).join('L')},defs);
+    const t=el('text',{'font-size':10.5*s,fill:'var(--ink-2)','stroke-width':2.6*s,stroke:'var(--land)',dy:3.5*s},gSL);
+    const tp=el('textPath',{href:'#'+id,startOffset:'50%','text-anchor':'middle'},t);tp.textContent=nm;
+    if(++n>140)break;
+  }
+}
+function labels(){
+  gLab.innerHTML='';placeBoxes.length=0;
+  const s=vb[2]/svg.clientWidth;Z=zoomLevel();svg.dataset.z=Z;styleRoads();streetLabels(s);
+  const rank={town:0,village:1,suburb:2,hamlet:3};
+  const show=Z===0?1:Z===1?2:3;
+  for(const [n,t,x,y] of BASE.places){
+    const r=rank[t];if(r>show)continue;
+    const big=r===0||(Z===0&&['Dobra','Nowe Warpno','Kołbaskowo','Trzebież','Mierzyn','Tanowo','Przęsocin'].includes(n));
+    if(Z===0&&!big&&r>0)continue;
+    const fs=(r===0?15:r===1?12:11)*s;
+    placeBoxes.push([(x-vb[0])/s-n.length*fs/s*.3,(y-vb[1])/s-fs/s*.9,(x-vb[0])/s+n.length*fs/s*.3,(y-vb[1])/s+fs/s*.25]);
+    const tx=el('text',{x,y,'font-size':fs,'font-weight':r<=1?700:500,fill:r<=1?'var(--ink)':'var(--ink-2)','text-anchor':'middle','stroke-width':3*s,stroke:'var(--land)','font-style':r===3?'italic':'normal'},gLab);tx.textContent=n;
+  }
+  const sz=(t,lat,lon,fs,o)=>{const [x,y]=P([lat,lon]);const e=el('text',Object.assign({x,y,'font-size':fs*s,'text-anchor':'middle'},o),gLab);e.textContent=t};
+  sz('SZCZECIN',53.43,14.56,16,{'font-weight':700,fill:'var(--ink-3)','letter-spacing':2*s,'stroke-width':3*s,stroke:'var(--land-out)'});
+  sz('Zalew Szczeciński',53.745,14.45,13,{'font-style':'italic',fill:'var(--water-ink)',stroke:'none'});
+  sz('NIEMCY',53.52,14.20,12,{fill:'var(--ink-3)',stroke:'none','letter-spacing':1.5*s});
+  sz('Puszcza Wkrzańska',53.60,14.40,12,{'font-style':'italic',fill:'var(--ink-3)',stroke:'none'});
+  drawInc();
+  // road number plates: placed last, on top, with screen-space collision
+  gPl.innerHTML='';
+  const [vx,vy,vw,vh]=vb, boxes=[...placeBoxes], perRef={};
+  const hit=(b)=>boxes.some(o=>b[0]<o[2]&&b[2]>o[0]&&b[1]<o[3]&&b[3]>o[1]);
+  const pri={m:0,p:1,s:2,r:3,u:4};
+  const C=BASE.plates.filter(p=>!/\s/.test(p[0])&&p[2]>vx&&p[2]<vx+vw&&p[3]>vy&&p[3]<vy+vh).sort((a,b)=>pri[a[1]]-pri[b[1]]);
+  const gap=Z===0?260:Z===1?220:200;
+  for(const [ref,c,x,y] of C){
+    const k=c==='m'||/^[AS]\d/.test(ref)?'A':/^\d{1,2}$/.test(ref)?'K':/^\d{3}$/.test(ref)?'W':'P';
+    if(k==='P'&&Z<2)continue;
+    const px=(x-vx)/s,py=(y-vy)/s;
+    if(px<24||py<18||px>svg.clientWidth-60||py>svg.clientHeight-18)continue;
+    if((perRef[ref]||[]).some(([a,b])=>Math.hypot(a-px,b-py)<gap))continue;
+    const wpx=ref.length*8.2+14,hpx=20,bx=[px-wpx/2-3,py-hpx/2-3,px+wpx/2+3,py+hpx/2+3];
+    if(hit(bx))continue;
+    boxes.push(bx);(perRef[ref]=perRef[ref]||[]).push([px,py]);
+    const w=wpx*s,h=hpx*s,g=el('g',{},gPl);
+    el('rect',{x:x-w/2-2*s,y:y-h/2-2*s,width:w+4*s,height:h+4*s,rx:4*s,fill:'var(--panel)',stroke:'var(--line)','stroke-width':.8*s},g);
+    const fill=k==='W'?'var(--plate-w)':k==='P'?'var(--panel)':'var(--plate-k)';
+    el('rect',{x:x-w/2,y:y-h/2,width:w,height:h,rx:2.5*s,fill,stroke:k==='W'?'#1a1a1a':k==='P'?'var(--ink)':'#ffffff','stroke-width':(k==='K'||k==='A'?1.4:1.2)*s},g);
+    if(k==='K'||k==='A')el('rect',{x:x-w/2+1.6*s,y:y-h/2+1.6*s,width:w-3.2*s,height:h-3.2*s,rx:1.6*s,fill:'none',stroke:'#fff','stroke-width':1*s},g);
+    const tx=el('text',{x,y:y+5.3*s,'font-size':15.5*s,'font-weight':700,'text-anchor':'middle',fill:k==='W'?'#111':k==='P'?'var(--ink)':'#fff',stroke:'none','font-family':'Barlow Condensed, Arial Narrow, sans-serif','letter-spacing':.3*s},g);tx.textContent=ref;
+  }
+}
+function setVB(){svg.setAttribute('viewBox',vb.map(v=>v.toFixed(2)).join(' '));labels()}
+function fit(box){
+  const ar=svg.clientWidth/svg.clientHeight||1; let [x,y,w,h]=box;
+  if(w/h<ar){const nw=h*ar;x-=(nw-w)/2;w=nw}else{const nh=w/ar;y-=(nh-h)/2;h=nh}
+  vb=[x,y,w,h];setVB();
+}
+let lt=0;
+function zoom(f,cx,cy){
+  if(cx==null){cx=vb[0]+vb[2]/2;cy=vb[1]+vb[3]/2}
+  const nw=Math.min(Math.max(vb[2]*f,1.5),FULL[2]*1.1),k=nw/vb[2];
+  vb=[cx-(cx-vb[0])*k,cy-(cy-vb[1])*k,vb[2]*k,vb[3]*k];
+  svg.setAttribute('viewBox',vb.join(' '));clearTimeout(lt);lt=setTimeout(labels,90);
+}
+document.getElementById('zin').onclick=()=>zoom(.6);
+document.getElementById('zout').onclick=()=>zoom(1/.6);
+document.getElementById('zreset').onclick=()=>fit(COUNTY);
+svg.addEventListener('wheel',e=>{e.preventDefault();const r=svg.getBoundingClientRect();zoom(e.deltaY>0?1.2:1/1.2,vb[0]+(e.clientX-r.left)/r.width*vb[2],vb[1]+(e.clientY-r.top)/r.height*vb[3])},{passive:false});
+const ptrs=new Map();let pinch0=null,moved=false;
+svg.addEventListener('pointerdown',e=>{ptrs.set(e.pointerId,[e.clientX,e.clientY]);moved=false;if(ptrs.size===2){const [a,b]=[...ptrs.values()];pinch0=Math.hypot(a[0]-b[0],a[1]-b[1])}});
+svg.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;
+  const prev=ptrs.get(e.pointerId);ptrs.set(e.pointerId,[e.clientX,e.clientY]);
+  const r=svg.getBoundingClientRect();
+  if(ptrs.size===1){const dx=e.clientX-prev[0],dy=e.clientY-prev[1];if(Math.abs(dx)+Math.abs(dy)>2){moved=true;svg.classList.add('drag');try{svg.setPointerCapture(e.pointerId)}catch(_){}}
+    if(moved){vb[0]-=dx/r.width*vb[2];vb[1]-=dy/r.height*vb[3];svg.setAttribute('viewBox',vb.join(' '))}}
+  else if(ptrs.size===2&&pinch0){moved=true;const [a,b]=[...ptrs.values()];const d=Math.hypot(a[0]-b[0],a[1]-b[1]);const cx=vb[0]+((a[0]+b[0])/2-r.left)/r.width*vb[2],cy=vb[1]+((a[1]+b[1])/2-r.top)/r.height*vb[3];zoom(pinch0/d,cx,cy);pinch0=d}
+});
+const up=e=>{ptrs.delete(e.pointerId);if(ptrs.size<2)pinch0=null;if(!ptrs.size){svg.classList.remove('drag');if(moved)labels()}};
+svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+
+/* ---------- incidents ---------- */
+let INC=[],filter='aktywne',sel=null;
+const ST={zamkniecie:['Zamknięta','var(--st-closed)'],utrudnienia:['Utrudnienia','var(--st-limit)'],planowane:['Zapowiedź','var(--st-plan)'],zakonczone:['Zakończone','var(--st-done)']};
+const kind=i=>i.status==='zakonczone'?'zakonczone':i.status==='planowane'?'planowane':(i.rodzaj==='zamkniecie'?'zamkniecie':'utrudnienia');
+const fmt=s=>{if(!s)return '';const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(s);return m?`${+m[3]}.${m[2]}.${m[1]}`:s};
+const visible=()=>INC.filter(i=>filter==='wszystkie'?true:filter==='aktywne'?i.status==='trwa':i.status==='planowane');
+const linesOf=i=>{const g=i.geom;if(!g||!g.c)return null;if(g.type==='multi')return g.c.filter(l=>l.length>1);if(g.type==='line'&&g.c.length>1)return [g.c];return null};
+const ptsOf=i=>{const g=i.geom;if(!g||!g.c)return [];return g.type==='multi'?g.c.flat():g.c};
+function drawInc(){
+  gInc.innerHTML='';const s=vb[2]/svg.clientWidth;
+  const vis=visible().slice().sort((a,b)=>(a.id===sel)-(b.id===sel));
+  for(const i of vis){
+    const col=ST[kind(i)][1],on=i.id===sel;
+    const g=el('g',{class:'inc'},gInc);
+    g.addEventListener('click',ev=>{if(moved)return;ev.stopPropagation();select(i.id,true,false)});
+    const c=(i.geom&&i.geom.c)||[];const lines=linesOf(i);
+    if(lines){const dd=lines.map(l=>path(l)).join('');
+      el('path',{d:dd,fill:'none',stroke:'var(--panel)','stroke-width':on?11:8,'stroke-linecap':'round','stroke-linejoin':'round','vector-effect':'non-scaling-stroke'},g);
+      el('path',{d:dd,fill:'none',stroke:col,'stroke-width':on?7:5,'stroke-linecap':'round','stroke-linejoin':'round','stroke-dasharray':i.status==='planowane'?'2 7':'none','vector-effect':'non-scaling-stroke'},g);
+      el('path',{d:dd,fill:'none',stroke:'transparent','stroke-width':22,'vector-effect':'non-scaling-stroke'},g);
+    }else if(c.length){
+      const [x,y]=P(c[0]);const r=(on?9:7)*s;
+      el('circle',{cx:x,cy:y,r:r+2*s,fill:'var(--panel)'},g);
+      el('circle',{cx:x,cy:y,r:r,fill:i.status==='planowane'?'var(--panel)':col,stroke:col,'stroke-width':2.5*s},g);
+      if(i.status!=='planowane')el('rect',{x:x-r*.55,y:y-r*.16,width:r*1.1,height:r*.32,fill:'#fff'},g);
+      el('circle',{cx:x,cy:y,r:r*2,fill:'transparent'},g);
+    }
+  }
+}
+function card(i){
+  const k=kind(i),[lab,col]=ST[k];
+  const d=document.createElement('div');d.className='item'+(i.id===sel?' sel':'');d.tabIndex=0;d.dataset.id=i.id;d.setAttribute('role','button');d.setAttribute('aria-expanded',i.id===sel);
+  const when=i.status==='planowane'?`Start: ${fmt(i.od)||'termin nieznany'}`:
+    `${i.od?'Od '+fmt(i.od):''}${i.do?(i.od?' · ':'')+'planowo do '+fmt(i.do):' · koniec: '+(i.doText||'nie podano')}`;
+  d.innerHTML=`<span class="bar" style="background:${col}"></span>
+   <div class="top"><span class="plate ${i.kat||'P'}"></span><span class="pill" style="background:${col}">${lab}</span><span class="gm"></span></div>
+   <h3></h3><div class="when"></div>
+   <div class="more"><p class="op"></p><p class="oz"></p><p class="ap approx"></p><div class="links"></div></div>`;
+  d.querySelector('.plate').textContent=i.droga||'—';
+  d.querySelector('.gm').textContent=i.gmina?('gm. '+i.gmina):'';
+  d.querySelector('h3').textContent=i.tytul;
+  d.querySelector('.when').textContent=when;
+  const op=d.querySelector('.op');op.textContent=i.opis||'';
+  const oz=d.querySelector('.oz');if(i.objazd){oz.innerHTML='<span class="lbl">Objazd</span>';oz.append(i.objazd)}else oz.remove();
+  const ap=d.querySelector('.ap');ap.textContent=(i.przyblizona?'Położenie na mapie przybliżone. ':'')+(i.sprawdzono?'Sprawdzono: '+fmt(i.sprawdzono)+'.':'');
+  const L=d.querySelector('.links');
+  (i.zrodla||[]).forEach(z=>{if(!/^https:\/\//.test(z.url||''))return;const a=document.createElement('a');a.href=z.url;a.target='_blank';a.rel='noopener';a.textContent=z.nazwa||'Źródło';L.append(a)});
+  const pp=ptsOf(i);const c=pp[Math.floor((pp.length-1)/2)];
+  if(c){const a=document.createElement('a');a.href=`https://www.openstreetmap.org/?mlat=${c[0]}&mlon=${c[1]}#map=15/${c[0]}/${c[1]}`;a.target='_blank';a.rel='noopener';a.textContent='Pokaż w OpenStreetMap';L.append(a)}
+  d.addEventListener('click',e=>{if(e.target.closest('a'))return;select(i.id===sel?null:i.id,false,true)});
+  d.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select(i.id===sel?null:i.id,false,true)}});
+  return d;
+}
+function renderList(){
+  const L=document.getElementById('list');L.innerHTML='';
+  const order={zamkniecie:0,utrudnienia:1,planowane:2,zakonczone:3};
+  const v=visible().sort((a,b)=>order[kind(a)]-order[kind(b)]||String(a.od||'').localeCompare(String(b.od||'')));
+  if(!v.length){L.innerHTML='<div class="empty">Brak wpisów w tym widoku.</div>'}
+  v.forEach(i=>L.append(card(i)));
+  const cnt={aktywne:INC.filter(i=>i.status==='trwa').length,planowane:INC.filter(i=>i.status==='planowane').length,wszystkie:INC.length};
+  document.querySelectorAll('#filters button').forEach(b=>b.querySelector('.n').textContent=cnt[b.dataset.f]);
+}
+function select(id,fromMap,zoomTo){
+  sel=id;
+  const i=INC.find(x=>x.id===id);
+  if(i&&!visible().includes(i)){filter='wszystkie';syncFilters()}
+  renderList();drawInc();
+  if(i&&zoomTo&&ptsOf(i).length){const pts=ptsOf(i).map(P);let x0=Math.min(...pts.map(p=>p[0])),x1=Math.max(...pts.map(p=>p[0])),y0=Math.min(...pts.map(p=>p[1])),y1=Math.max(...pts.map(p=>p[1]));const m=Math.max(2.5,(x1-x0)*.35,(y1-y0)*.35);fit([x0-m,y0-m,x1-x0+2*m,y1-y0+2*m])}
+  if(i&&fromMap){const c=document.querySelector(`.item[data-id="${CSS.escape(id)}"]`);c&&c.scrollIntoView({block:'nearest',behavior:'smooth'})}
+}
+function syncFilters(){document.querySelectorAll('#filters button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.f===filter))}
+document.getElementById('filters').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;filter=b.dataset.f;syncFilters();renderList();drawInc()});
+svg.addEventListener('click',()=>{if(!moved&&sel){sel=null;renderList();drawInc()}});
+
+drawBase();requestAnimationFrame(()=>fit(COUNTY));
+addEventListener('resize',()=>fit(vb));
+
+(async()=>{
+  const stamp=document.getElementById('stamp');
+  let DANE;
+  try{const r=await fetch('dane.json?v='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;DANE=await r.json();}
+  catch(e){stamp.textContent='Nie udało się wczytać danych. Odśwież stronę.';document.getElementById('list').innerHTML='<div class="empty">Nie udało się wczytać listy utrudnień.</div>';return}
+  INC=DANE.utrudnienia; renderList(); drawInc();
+  const m=DANE.stan; stamp.innerHTML='';
+  const b=document.createElement('b'); b.textContent=m.ostatniaAktualizacjaTekst||fmt(m.ostatniaAktualizacja);
+  stamp.append('Ostatnia aktualizacja: ',b);
+  if(m.uwaga){const d=document.createElement('div');d.textContent=m.uwaga;stamp.append(d)}
+})();
+</script>
+
+
+</body>
+</html>
